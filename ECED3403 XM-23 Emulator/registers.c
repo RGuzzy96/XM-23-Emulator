@@ -107,3 +107,33 @@ void displayPSW() {
 	// extra newline for spacing
 	printf("\n");
 }
+
+void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode) {
+	// use 8-bit mask if byte mode, 16 bit if not (word mode)
+	uint16_t mask = isByteMode ? 0xFF : 0xFFFF;
+
+	// mask result based on mode
+	result &= mask;
+
+	// reset all PSW flags before setting new ones
+	PSW &= ~(PSW_Z | PSW_N | PSW_C | PSW_V);
+
+	// update zero (Z) flag if result is 0
+	if (result == 0) SET_FLAG(PSW_Z);
+
+	// set negative (N) flag if result is negative (MSB is 1)
+	if (result & (isByteMode ? 0x80 : 0x8000)) SET_FLAG(PSW_N);
+
+	// set carry (C) flag if unsigned borrow occured (src greater than what is in dst)
+	if ((uint16_t)dst < (uint16_t)src) SET_FLAG(PSW_C);
+
+	// convert values to signed
+	int16_t signedDst = (int16_t)(dst & mask);
+	int16_t signedSrc = (int16_t)(src & mask);
+	int16_t signedResult = (int16_t)(result & mask);
+
+	// set overvflow (V) flag if signed overflow occured (checking if dst and src have same signs and if the result has different sign than dst)
+	if (((signedDst < 0) == (signedSrc < 0)) && ((signedDst < 0) != (signedResult < 0))) {
+		SET_FLAG(PSW_V);
+	}
+}

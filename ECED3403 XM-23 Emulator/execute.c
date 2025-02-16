@@ -47,9 +47,9 @@ static const PrintInfo* getPrintInfo(Instruction* instruction) {
 
 	switch (instruction->type) {
 		case AL:
+			printInfoModified = printInfo1;
 			// if set for byte, adjust dst display
-			if (instruction->wb) {
-				printInfoModified = printInfo1;
+			if (instruction->wb) {	
 				printInfoModified.formats[0] = "A%d";
 				printInfoModified.formats[1] = "A%d";
 			}
@@ -69,8 +69,7 @@ static const PrintInfo* getPrintInfo(Instruction* instruction) {
 				printInfoModified.formats[2] = "0x%04x";
 			}
 			// if byte mode, adjust register displays
-			if (instruction->wb) {
-				printInfoModified = printInfo1;
+			if (instruction->wb == 1) {
 				// for load ops, dst in byte mode, for store ops, src in byte mode
 				if (instruction->mnemonic == "LD" || instruction->mnemonic == "LDR") {
 					printInfoModified.formats[0] = "A%d";
@@ -86,7 +85,7 @@ static const PrintInfo* getPrintInfo(Instruction* instruction) {
 			return &printInfo3;
 		case SO:
 			// if set for byte, adjust dst display
-			if (instruction->wb) {
+			if (instruction->wb == 1) {
 				printInfoModified = printInfo4;
 				printInfoModified.formats[0] = "A%d";
 				return &printInfoModified;
@@ -146,6 +145,9 @@ int execute(Instruction* instruction) {
 			break;
 		case REX:
 			code = executeREX(instruction);
+			break;
+		case SO:
+			code = executeSO(instruction);
 			break;
 		default:
 			code = 1;

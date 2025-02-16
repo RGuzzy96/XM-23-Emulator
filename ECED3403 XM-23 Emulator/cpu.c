@@ -23,7 +23,7 @@ static int handleUserCommand() {
 	char input[10];
 
 	// print instructions message for user
-	printf("\n[ENTER} to continue | [S] to stop | [P <new PC>] to change PC | [R] to display registers | [W] to display PSW\n");
+	printf("\n[ENTER} to continue | [S] to stop | [P <new PC>] to change PC | [R] to display registers | [W] to display PSW | [D <addr> <len>] to dump memory\n");
 	printf(">");
 
 	// get user input
@@ -81,6 +81,23 @@ static int handleUserCommand() {
 
 		// ask for input again, in case user does not want to continue program yet
 		return handleUserCommand();
+	}
+
+	// check if user entered D or d
+	if (input[0] == 'D' || input[0] == 'd') {
+		unsigned int startAddr, length;
+		// scan in values
+		if (sscanf(input + 1, "%x %d", &startAddr, &length) == 2) {
+			// print specified memory section
+			printMemorySection(startAddr, length);
+
+			// ask for input again
+			while (getchar() != '\n'); // flush input buffer
+			return handleUserCommand();
+		}
+		else {
+			printf("Invalid input. Usage: D <start_address (hex)> <length (decimal)>\n");
+		}
 	}
 
 	// if no valid command, print message, flush input buffer, and call function again

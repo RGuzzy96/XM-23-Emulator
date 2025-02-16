@@ -30,9 +30,28 @@ uint8_t readMemory(uint16_t address) {
 }
 
 void printMemorySection(uint16_t startingAddress, int length) {
+
+	// valid start address within range
+	if (startingAddress >= MEMORY_SIZE) {
+		printf("Error: Attempt to print from address 0x%04x, beyond limit 0x%04x\n", startingAddress, MEMORY_SIZE);
+		return;
+	}
+
+	// validate memory display length, trim if necessary
+	if (length > MAX_MEMORY_PRINT) {
+		printf("Warning: Limiting memory display to %d bytes.\n", MAX_MEMORY_PRINT);
+		length = MAX_MEMORY_PRINT;
+	}
+
 	printf("Address      Value\n");
 	printf("------------------\n");
 	for (int i = 0; i < length; i++) {
+		// valid each address within range before print
+		if (startingAddress + i >= MEMORY_SIZE) {
+			printf("Error: Attempt to print from address 0x%04x, beyond limit 0x%04x\n", startingAddress + 1, MEMORY_SIZE);
+			return;
+		}
+		// print memory from valid address
 		printf("0x%04X       0x%02X\n", startingAddress + i, readMemory(startingAddress + i));
 	}
 }

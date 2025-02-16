@@ -15,7 +15,8 @@ static void extractOperandsAndFlags(uint16_t instructionWord, Instruction* instr
 		instruction->type == MEM
 		|| instruction->type == AL
 		|| instruction->type == RIN
-		|| instruction->type == REX;
+		|| instruction->type == REX
+		|| instruction->type == SO;
 
 	bool hasSource =
 		instruction->type == MEM
@@ -27,7 +28,8 @@ static void extractOperandsAndFlags(uint16_t instructionWord, Instruction* instr
 	bool hasWB =
 		instruction->type == MEM
 		|| instruction->type == AL
-		|| instruction->type == REX;
+		|| instruction->type == REX
+		|| (instruction->type == SO && instruction->mnemonic != "SWPB" && instruction->mnemonic != "SXT");
 
 	// extract the destination operand, if any
 	if (hasDestination) {

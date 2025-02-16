@@ -55,4 +55,7 @@ void displayRegisterFile();
 // prints the PSW at the current moment in hex, binary, and broken into readable flags
 void displayPSW();
 
+// function to update status flags in PSW after an arithmetic/logic operation
+void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode);
+
 #endif // !REGISTERS_H

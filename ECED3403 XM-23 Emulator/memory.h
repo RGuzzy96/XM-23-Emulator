@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define MEMORY_SIZE 65536 // 64kB memory
+#define MAX_MEMORY_PRINT 48 // define max memory addresses to print at a time (keeping small to not overwhelm the console)
 
 extern uint8_t *memory;
 
