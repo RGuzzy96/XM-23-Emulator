@@ -1,9 +1,12 @@
 /*
 
 ECED3403 - Computer Architecture
-Lab 2 - Instruction Decoding
+Assignment 1 - XM-23 Emulator
 Ryan Guzzwell (B00859689)
-February 6, 2025
+
+Changelog
+- February 16, 2025
+- February 6, 2025
 
 */
 
