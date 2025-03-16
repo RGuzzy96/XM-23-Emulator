@@ -56,6 +56,6 @@ void displayRegisterFile();
 void displayPSW();
 
 // function to update status flags in PSW after an arithmetic/logic operation
-void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode);
+void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode, int isSubtraction);
 
 #endif // !REGISTERS_H

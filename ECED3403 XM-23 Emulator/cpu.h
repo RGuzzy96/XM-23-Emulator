@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+// define cpu clock
+extern uint32_t cpuClock;
+
 // function to start and control the fetch/decode/execute loop
 void cpuCycle();
 

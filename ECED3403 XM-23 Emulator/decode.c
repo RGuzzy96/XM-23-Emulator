@@ -95,7 +95,7 @@ static void extractOperandsAndFlags(uint16_t instructionWord, Instruction* instr
 	// if LDR or STR, extract encoded offset for source address
 	if (instruction->mnemonic == "LDR" || instruction->mnemonic == "STR") {
 		// mask to get offset in bits 13-7, store in operands
-		instruction->operands[2] = instructionWord & 0x3F00;
+		instruction->operands[2] = (instructionWord >> 8) & 0x007F;
 	}
 }
 

@@ -11,12 +11,10 @@ int executeSO(Instruction* instruction) {
 		return 2;
 	}
 
-	printf("Executing instruction: 0x%04x\n", instruction->opcode);
-
 	switch (instruction->opcode) {
 		case 0x4D00: // SRA
 			result = (int16_t)dstValue >> 1; // perform arithmetic right shift, preserve sign
-			updateFlags(result, 0, dstValue, isByteMode); // update psw flags based on operation
+			updateFlags(result, 0, dstValue, isByteMode, 0); // update psw flags based on operation
 			return writeToRegister(instruction->operands[0], result, isByteMode, 0); // write shifted result to dst register
 		case 0x4D08: // RRC
 		{
@@ -26,20 +24,20 @@ int executeSO(Instruction* instruction) {
 			// update carry flag with LSB of original value
 			if (dstValue & 0x1) SET_FLAG(PSW_C);
 			else CLEAR_FLAG(PSW_C);
-			updateFlags(result, 0, dstValue, isByteMode); // update psw flags based on operation
+			updateFlags(result, 0, dstValue, isByteMode, 0); // update psw flags based on operation
 			return writeToRegister(instruction->operands[0], result, isByteMode, 0); // write rotated result to dst register
 		}
 		case 0x4D10: // COMP
 			result = ~dstValue; // flip all bits
-			updateFlags(result, 0, dstValue, isByteMode); // update psw flags based on operation
+			updateFlags(result, 0, dstValue, isByteMode, 0); // update psw flags based on operation
 			return writeToRegister(instruction->operands[0], result, isByteMode, 0); // write flipped-bit result to dst register
 		case 0x4D18: // SWPB
 			result = ((dstValue & 0x00FF) << 8) | ((dstValue & 0xFF00) >> 8); // swap lower and upper bytes
-			updateFlags(result, 0, dstValue, 0); // update psw flags based on operation
+			updateFlags(result, 0, dstValue, 0, 0); // update psw flags based on operation
 			return writeToRegister(instruction->operands[0], result, 0, 0); // write swapped result to dst register
 		case 0x4D20: // SXT
 			result = (int16_t)(int8_t)(dstValue & 0xFF); // extend the sign bit of the lower byte to the full 16-bit word
-			updateFlags(result, 0, dstValue, 0); // update psw flags based on operation
+			updateFlags(result, 0, dstValue, 0, 0); // update psw flags based on operation
 			return writeToRegister(instruction->operands[0], result, 0, 0); // write sign-extended result to dst register
 		default:
 			return 1;

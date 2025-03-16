@@ -84,55 +84,60 @@ int executeAL(Instruction* instruction) {
 	case 0x41: // ADDC (addition with carry)
 		printf("Adding %d and %d\n", dstValue, srcValue);
 		result = dstValue + srcValue + (instruction->opcode == 0x41 && PSW & PSW_C ? 1 : 0); // add DST and SRC, with carry if ADDC
-		updateFlags(result, srcValue, dstValue, isByteMode); // update the PSW flags based on the operation result
+		updateFlags(result, srcValue, dstValue, isByteMode, 0); // update the PSW flags based on the operation result
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0); // write result in dst register
 
 	case 0x42: // SUB
 	case 0x43: // SUBC (subtraction with carry)
 		result = dstValue + (~srcValue + 1) + (instruction->opcode == 0x43 && PSW & PSW_C ? 1 : 0); // subtract dst and src, with carry if SUBC
-		updateFlags(result, srcValue, dstValue, isByteMode); // update the PSW flags based on the operation result
+		updateFlags(result, srcValue, dstValue, isByteMode, 1); // update the PSW flags based on the operation result
 		return  writeToRegister(instruction->operands[0], result, isByteMode, 0); // write result in dst register		
 
 	case 0x44: // DADD (decimal addition, see: https://www.ibm.com/docs/en/i/7.3?topic=concepts-arithmetic-operations#MCNPFAO__title__4)
 		result = dstValue + srcValue + (PSW & PSW_C ? 1 : 0); // addition with carry
 		result = applyBCDAdjustment(result, isByteMode); // correct the result for BCD
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	case 0x45: // CMP
 		printf("Comparing %d and %d\n", dstValue, srcValue);
 		result = dstValue + (~srcValue + 1); // subtract DST and SRC
-		updateFlags(result, srcValue, dstValue, isByteMode); // update the PSW flags based on the operation result
+		updateFlags(result, srcValue, dstValue, isByteMode, 0); // update the PSW flags based on the operation result
 		return 0;
 
 	case 0x46: // XOR (see: https://www.geeksforgeeks.org/bitwise-operators-in-c-cpp/)
 		result = dstValue ^ srcValue;
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	case 0x47: // AND
 		result = dstValue & srcValue;
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	case 0x48: // OR
 		result = dstValue | srcValue;
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	case 0x49: // BIT (bit test)
 		result = dstValue & (1 << srcValue);
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		// reset all PSW flags before setting new zero flag
+		PSW &= ~(PSW_Z | PSW_N | PSW_C | PSW_V);
+		// set zero flag is result zero
+		if (!result) {
+			SET_FLAG(PSW_Z);
+		}
 		return 0;
 
 	case 0x4A: // BIC (bit clear)
 		result = dstValue & ~(1 << srcValue);
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	case 0x4B: // BIS (bit set)
 		result = dstValue | (1 << srcValue);
-		updateFlags(result, srcValue, dstValue, isByteMode);
+		updateFlags(result, srcValue, dstValue, isByteMode, 0);
 		return writeToRegister(instruction->operands[0], result, isByteMode, 0);
 
 	default:

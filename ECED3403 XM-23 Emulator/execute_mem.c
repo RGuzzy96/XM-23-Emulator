@@ -81,11 +81,23 @@ int executeMEM(Instruction* instruction) {
 
 		// add offset to address from source if LDR
 		if (instruction->opcode == 0x80) {
-			addressFromSource += instruction->operands[2];
+			int16_t offset = instruction->operands[2] & 0x3F;  // extract lower 6 bits
+
+			// if bit 5 is set, extend the sign to 16 bits
+			if (instruction->operands[2] & 0x20) {
+				offset |= 0xFFC0;
+			}
+
+			if (instruction->wb) {
+				addressFromSource += offset;  // byte mode
+			}
+			else {
+				addressFromSource += offset * 2;  // word mode
+			}
 		}
 
 		// handle pre increment/decrement if needed
-		if(adjustAddressWithPRPO(instruction, &addressFromSource, instruction->operands[1], 1) == 2) {
+		if(instruction->opcode == 0x58 && adjustAddressWithPRPO(instruction, &addressFromSource, instruction->operands[1], 1) == 2) {
 			printf("Error pre incrementing/decrementing register for %s instruction\n", instruction->mnemonic);
 			return 2;
 		}
@@ -117,7 +129,7 @@ int executeMEM(Instruction* instruction) {
 		}
 	
 		// handle post increment/decrement if needed
-		if (adjustAddressWithPRPO(instruction, &addressFromSource, instruction->operands[1], 0) == 2) {
+		if (instruction->opcode == 0x58 && adjustAddressWithPRPO(instruction, &addressFromSource, instruction->operands[1], 0) == 2) {
 			printf("Error post incrementing/decrementing register for %s instruction\n", instruction->mnemonic);
 			return 2;
 		}
@@ -143,21 +155,33 @@ int executeMEM(Instruction* instruction) {
 		}
 
 		// handle pre increment/decrement if needed
-		if (adjustAddressWithPRPO(instruction, &addressToWrite, instruction->operands[0], 1) == 2) {
+		if (instruction->opcode == 0x5C && adjustAddressWithPRPO(instruction, &addressToWrite, instruction->operands[0], 1) == 2) {
 			printf("Error pre incrementing/decrementing register for %s instruction\n", instruction->mnemonic);
 			return 2;
 		}
 
 		// if STR, add the offset
 		if (instruction->opcode == 0xC0) {
-			int16_t offset = (int8_t)instruction->operands[2]; // sign extending the single byte offset
-		}
+			int16_t offset = instruction->operands[2] & 0x3F; // extract lower 6 bits
 
+			// if bit 5 is set, extend the sign
+			if (instruction->operands[2] & 0x20) {
+				offset |= 0xFFC0;  // extend sign
+			}
+
+			if (instruction->wb) {
+				addressToWrite += offset;  // byte mode
+			}
+			else {
+				addressToWrite += offset * 2;  // word mode
+			}
+		}
+		
 		// write the register value to memory
 		if (!handleMemoryWrite(addressToWrite, valueToStore, instruction->wb, instruction->mnemonic)) return 2;
 
 		// handle post increment/decrement if needed
-		if (adjustAddressWithPRPO(instruction, &addressToWrite, instruction->operands[0], 0) == 2) {
+		if (instruction->opcode == 0x5C && adjustAddressWithPRPO(instruction, &addressToWrite, instruction->operands[0], 0) == 2) {
 			printf("Error pre incrementing/decrementing register for %s instruction\n", instruction->mnemonic);
 			return 2;
 		}

@@ -14,15 +14,15 @@ uint16_t registerFile[REGISTER_COUNT] = {
 uint16_t PSW = 0x0000; // initialize PSW with no flags set 
 
 void initializeRegisterFile() {
-	// explicitly reset values to constant values
+	// explicitly reset values to 0
 	registerFile[0] = 0x0000;
-	registerFile[1] = 0x0001;
-	registerFile[2] = 0x0002;
-	registerFile[3] = 0x0004;
-	registerFile[4] = 0x0008;
-	registerFile[5] = 0x0010;
-	registerFile[6] = 0x0020;
-	registerFile[7] = 0xFFFF;
+	registerFile[1] = 0x0000;
+	registerFile[2] = 0x0000;
+	registerFile[3] = 0x0000;
+	registerFile[4] = 0x0000;
+	registerFile[5] = 0x0000;
+	registerFile[6] = 0x0000;
+	registerFile[7] = 0x0000;
 }
 
 int writeToRegister(uint8_t registerIdentifier, uint16_t value, int isByteMode, int isMSB) {
@@ -108,7 +108,7 @@ void displayPSW() {
 	printf("\n");
 }
 
-void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode) {
+void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode, int isSubtraction) {
 	// use 8-bit mask if byte mode, 16 bit if not (word mode)
 	uint16_t mask = isByteMode ? 0xFF : 0xFFFF;
 
@@ -124,8 +124,14 @@ void updateFlags(uint16_t result, uint16_t src, uint16_t dst, int isByteMode) {
 	// set negative (N) flag if result is negative (MSB is 1)
 	if (result & (isByteMode ? 0x80 : 0x8000)) SET_FLAG(PSW_N);
 
-	// set carry (C) flag if unsigned borrow occured (src greater than what is in dst)
-	if ((uint16_t)dst < (uint16_t)src) SET_FLAG(PSW_C);
+	if (isSubtraction) {
+		// set carry if borrow occurred (dst < src)
+		if ((uint16_t)dst < (uint16_t)src) SET_FLAG(PSW_C);
+	}
+	else {
+		// set carry if overflow occurred
+		if (result < dst) SET_FLAG(PSW_C);
+	}
 
 	// convert values to signed
 	int16_t signedDst = (int16_t)(dst & mask);
